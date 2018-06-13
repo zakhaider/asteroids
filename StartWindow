@@ -1,0 +1,61 @@
+ 
+
+import java.awt.*;
+import javax.swing.*;
+import java.awt.event.*;
+
+public class StartWindow extends JFrame implements ActionListener
+{
+    private JButton startButton,scoreButton,exitButton;
+    public StartWindow()
+    {
+        //Setup screen
+        super("StartWindow");
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        this.setBounds(500,500,600,500);
+        //Layout setup
+        getContentPane().setLayout(null); 
+        setContentPane(new JLabel(new ImageIcon("fireball.gif")));
+        //JButtons
+        startButton = new JButton("Start Game");
+        startButton.setBounds(215,100,150,45);
+        add(startButton);
+        startButton.addActionListener(this);
+        scoreButton = new JButton("Leaderboards");
+        scoreButton.setBounds(215,200,150,45);
+        add(scoreButton);
+        scoreButton.addActionListener(this);
+        exitButton = new JButton("Exit Game");
+        exitButton.setBounds(215,300,150,45);
+        add(exitButton);
+        exitButton.addActionListener(this);
+        // add the image label
+    
+        //Make screen visible
+        this.setVisible(true);
+    }
+
+    public static void main(String args[])
+    {
+        new StartWindow();
+    }
+
+    public void actionPerformed(ActionEvent e)
+    {
+        if (e.getSource() == startButton)
+        {
+            new Asteroids();
+        }
+        if (e.getSource() == scoreButton)
+        {
+            Asteroids scoreM = new Asteroids();
+            int theScore = scoreM.getScoreM();
+            new Score(theScore,null).getScores();
+        }
+        if (e.getSource() == exitButton)
+        {
+            this.dispose();
+            System.exit(0);
+        }
+    }
+}
