@@ -1,0 +1,111 @@
+import javax.swing.*;
+import java.util.Random;
+import javax.swing.event.*;
+import java.awt.*;  
+import java.awt.event.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.io.*;
+import java.util.*;
+import java.text.*;
+
+public class Score extends JDialog
+{
+    JLabel scoreLabel, nameLabel;
+    JTable scoreTable;
+    int score = 0;
+    int[] highScores = new int[10];    
+    String[] names=new String[10];
+    String[] listItems = {"0","0","0","0","0","0","0","0","0","0"};
+    String[] nameItems = {"0","0","0","0","0","0","0","0","0","0"};
+    String[] columnNames = {"Score", "Name"};
+    String[][] tableData = {{"0", ""},{"0", ""},{"0", ""},{"0", ""},{"0", ""},{"0", ""},{"0", ""},{"0", ""},{"0", ""},{"0", ""}};
+
+    public Score(int score, Frame owner)
+    {
+        super (owner, "High Scores:", true); 
+        //JFrame
+        this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        this.setBounds (300, 300, 500, 400); 
+        this.setTitle("Asteroids Leaderboards");
+        //Set Layout
+        JPanel outer = new JPanel (new BorderLayout());
+        JPanel content = new JPanel();
+        scoreLabel=new JLabel("Your Score:",JLabel.CENTER);  
+        content.add(scoreLabel);
+        outer.add(scoreLabel, BorderLayout.NORTH);   
+        outer.add(content, BorderLayout.CENTER); 
+        JTable scoreTable = new JTable(tableData, columnNames);  
+        content.add(scoreTable);
+        DefaultTableCellRenderer centerRenderer=new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment( JLabel.CENTER );
+        scoreTable.setDefaultRenderer(Object.class, centerRenderer);
+        scoreTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+        scoreTable.setEnabled(false);
+        this.setContentPane(outer);
+        getScores();
+        addScore(score,null);  
+    }
+
+    public void addScore(int newScore, String newName)
+    {
+        for (int i=0; i<10; i++)
+        {
+            if (newScore > highScores[i])
+            {
+                for (int j=9; j>i; j--)
+                {
+                    highScores[j] = highScores[j-1];
+                    names[j] = names[j-1];
+                }
+                if (newName.equals(null) || newName.trim().isEmpty())
+                {
+                    newName = JOptionPane.showInputDialog ("Please enter your name"); 
+                }
+                names[i] = newName;
+                scoreLabel.setText("Your Score: "+newScore);
+                highScores[i] = newScore;
+                break;
+            }
+        }
+        for (int i=0; i<10; i++)
+        {
+            listItems[i] = Integer.toString(highScores[i]);
+            nameItems[i] = names[i];
+            tableData[i][0] = Integer.toString(highScores[i]);
+            tableData[i][1] = names[i];
+        }
+        saveScores();
+        repaint();
+    }    
+    public void saveScores()
+    {
+        try {
+            PrintWriter out= new PrintWriter("scores.txt");
+            for (int i=0; i<10; i++)
+            {
+               out.println(highScores[i]);
+               out.println(names[i]);
+            }
+            out.close();
+        } catch (IOException e) {
+            System.out.println("Cannot open file.");
+        }
+    }
+    public void getScores()
+    {
+        try {
+            BufferedReader in=new BufferedReader(new FileReader("scores.txt"));
+            String line;
+            //while ((line = in.readLine()) != null)
+            for (int i=0; i<10; i++)
+            {
+                line = in.readLine();
+                highScores[i] = Integer.parseInt(line);
+                names[i] = in.readLine();
+            }
+            in.close();
+        } catch (IOException e) {
+            System.out.println("Cannot open file.");
+        }
+    }
+}
