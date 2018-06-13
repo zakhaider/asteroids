@@ -1,0 +1,56 @@
+import javax.swing.*;
+import java.util.Random;
+import javax.swing.event.*;
+import java.awt.*;  
+import java.awt.image.BufferedImage;
+import java.awt.event.*;
+import javax.imageio.*;
+import java.io.*;
+import java.awt.geom.*;
+import java.awt.Container.*;
+import java.awt.Graphics;
+import java.awt.Color;
+import javax.imageio.ImageIO;
+import java.util.ArrayList;
+
+public class Bullet{
+    double x,y;
+    Image img;
+    boolean visible;
+    double radians = 0;
+    double speed = 6;
+    public Bullet(double startX, double startY, double r){
+    	radians = r;
+        x = startX;
+        y = startY;
+        ImageIcon newBullet = new ImageIcon("bullet.png");
+        img = newBullet.getImage();
+        visible = true;
+    }
+    public double getX()
+    {
+        return x;
+    }
+    public double getY()
+    {
+        return y;
+    }
+    public boolean getVisible()
+    {
+        return visible;
+    }
+    public Image getImage()
+    {
+        return img;
+    }
+    public void move()
+    {
+    	x += speed * Math.sin(radians);
+    	y -= speed * Math.cos(radians);
+    	
+        if (x>Asteroids.WIDTH || y>Asteroids.HEIGHT || x<0 ||  y<0)
+        {
+            visible=false;
+        }
+    }
+}
