@@ -1,0 +1,218 @@
+import javax.swing.*;
+import java.util.Random;
+import java.awt.*;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.awt.event.*;
+import java.io.*;
+import java.awt.geom.*;
+import java.awt.Graphics;
+import java.awt.Color;
+import javax.imageio.ImageIO;
+import java.util.ArrayList;
+
+public class Asteroids extends JFrame implements KeyListener, ActionListener
+{
+    private JLabel scorelabel,liveslabel;
+    private static int score = 0, timerDisplay = 15;
+    private JTextArea livesA, scoreA;
+    private double x = 410, y = 450;
+    private double dx = 0, dy = 0;
+    public static int WIDTH = 900, HEIGHT = 750;
+    public BufferedImage ship;
+    public Bullet getX;
+    public Bullet getY;
+    public Enemy getXe;
+    public Enemy getYe;
+    public static ArrayList<Bullet> bullets = new ArrayList<>();
+    public static ArrayList<Enemy> enemies = new ArrayList<>();
+    private double default_bullet_delay =15;
+    private double time = 0;    
+    private double radians = 0;
+    Random rand = new Random();
+    int numberEnemies = 15;
+   
+    public void addEnemy(Enemy e) {
+    	enemies.add(e);
+    }    
+    public Asteroids()
+    {
+        super("Asteroids");
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        this.setBounds(500,500,WIDTH,HEIGHT);
+        getContentPane().setLayout(null);
+        addKeyListener(this);
+        setFocusable(true);
+        Timer tm = new Timer(5, this); //for animation
+        tm.start();
+        //JPanel setup
+        setContentPane(new JLabel(new ImageIcon("spacebackground.png")));
+        //Score Label
+        scorelabel=new JLabel("Score:",JLabel.CENTER);
+        scorelabel.setForeground(Color.white);
+        scorelabel.setBounds(170,650,80,20);        
+        add(scorelabel); 
+        //Score Area
+        scoreA = new JTextArea(0,5);
+        scoreA.setEditable(false);
+        scoreA.setBounds(235,655,35,13);        
+        add(scoreA);    
+        scoreA.setVisible(true);   
+        //Lives Label
+        liveslabel = new JLabel("Lives Left:");
+        liveslabel.setForeground(Color.white);
+        liveslabel.setBounds(600,650,80,20);      
+        add(liveslabel);        
+        //Lives Area
+        livesA = new JTextArea(0,5);
+        livesA.setEditable(false);
+        livesA.setBounds(663,655,37,13);        
+        add(livesA);
+        livesA.setVisible(true);
+        //Creating enemies
+        for (int i = 0; i <numberEnemies; i++) {
+        	addEnemy(new Enemy(rand.nextInt(Asteroids.WIDTH),rand.nextInt(Asteroids.HEIGHT)));
+        }
+        //Make Panel Visible
+        this.setVisible(true);
+    }
+    public void paint(Graphics g)
+    {
+        try{
+            BufferedImage ship = ImageIO.read(this.getClass().getResource("ship.png")); //https://stackoverflow.com/questions/26485957/java-drawimage-cannot-find-my-bufferedimage
+            // Background drawing buffer:      
+            Image backbuffer = createImage(getWidth(), getHeight());
+            Graphics bg = backbuffer.getGraphics(); //Stop flickering
+            super.paint(bg);
+        	//Rotation - Source: https://stackoverflow.com/questions/4918482/rotating-bufferedimage-instances
+            AffineTransform transform = new AffineTransform();
+            transform.rotate(radians, ship.getWidth()/2, ship.getHeight()/2);
+            AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+            ship = op.filter(ship, null);
+            bg.drawImage(ship,(int)x,(int)y,null);  
+            for (int i = 0; i < bullets.size(); i++)
+            {
+                Bullet m = (Bullet) bullets.get(i);
+                bg.drawImage(m.getImage(),(int)m.getX(),(int)m.getY(),null);
+            } // Adding enemies to screen
+            for (int i =0; i<enemies.size();i++)
+            {
+            	Enemy e = (Enemy) enemies.get(i);
+            	bg.drawImage(e.getImage1(),(int)e.getXe(),(int)e.getYe(),null);
+            }
+            for (int i =0; i<enemies.size();i++)
+            {
+            	Enemy e = (Enemy) enemies.get(i);
+            	bg.drawImage(e.getImage2(),(int)e.getXe(),(int)e.getYe(),null);
+            }
+            g.drawImage(backbuffer,0,0,this);
+        }
+        catch (IOException e){
+        }
+    }
+    public int getScoreM()
+    {
+        return this.score;
+    }
+    static double bulletSpawnRadius = 38;
+    double bulletX = bulletSpawnRadius * Math.sin(radians);
+    double bulletY = bulletSpawnRadius * Math.cos(radians);
+    public void fire(){
+        Bullet b = new Bullet(this.x+bulletX + 30,this.y-bulletY + 15,radians);
+        bullets.add(b);  
+    }
+    public static ArrayList<Bullet> getBullets()
+    {
+        return bullets;
+    }
+    static double thrust = 0.3;
+    static double friction = 0.95;
+    public void actionPerformed(ActionEvent e){
+        for (int i = 0; i <bullets.size(); i++)
+        {
+            Bullet c = (Bullet) bullets.get(i);
+            if (c.getVisible() == true){
+                c.move();
+            }
+            else{
+                bullets.remove(i);
+            }
+        }
+        for (int i = 0; i <enemies.size(); i++)
+        {
+            Enemy c = (Enemy) enemies.get(i);
+            if (c.getVisible() == true){
+                c.move();
+            }
+            else{
+                enemies.remove(i);
+            }
+        }
+        for (int i = 0; i <enemies.size(); i++)
+        {
+            Enemy c = (Enemy) enemies.get(i);
+            if (c.getVisible() == true){
+                c.move();
+            }
+            else{
+                enemies.remove(i);
+            }
+        }
+        if (y+55+dy>HEIGHT || y+dy<0)
+        {
+            dy = -dy;
+        }
+        if (x+55+dx>WIDTH || x+dx<0)
+        {
+            dx = -dx; 
+        }
+        x += dx;
+        y += dy;
+         if (keySet[KeyEvent.VK_DOWN]){
+            dx += thrust*Math.cos(radians + Math.PI/2);
+            dy += thrust*Math.sin(radians + Math.PI/2);
+        }
+        if (keySet[KeyEvent.VK_UP]){
+            dx -= thrust*Math.cos(radians + Math.PI/2);
+            dy -= thrust*Math.sin(radians + Math.PI/2);
+        }
+        if (keySet[KeyEvent.VK_LEFT]){
+            radians -= 0.1;
+        }
+        if (keySet[KeyEvent.VK_RIGHT]){
+            radians += 0.1;
+        }
+        if (keySet[KeyEvent.VK_SPACE]){
+        	fireDelay(1);
+        }
+        dx *= friction;
+        dy *= friction;
+        repaint();
+	}
+    public void fireDelay(double u) {
+	    time -= u;
+	    if (time <= 0) {
+	        fire();
+	        time = default_bullet_delay;
+	    }
+    }//https://stackoverflow.com/questions/15859993/how-can-i-delay-each-bullet-java-slick2d-game
+    public static boolean[] keySet = new boolean[256];
+    public void keyPressed(KeyEvent e){
+       int code = e.getKeyCode();
+       keySet[code] = true;
+    }// https://www.youtube.com/watch?v=Km81XyczqC4
+    public void keyTyped (KeyEvent e){}
+
+    public void keyReleased(KeyEvent e){  
+       keySet[e.getKeyCode()] = false;
+    }
+    public Rectangle shipCollison(int x, int y) {
+    	return (new Rectangle(x,y,ship.getWidth(),ship.getHeight()));
+    }
+
+    public static void main(String args[])
+    {
+        new Asteroids();
+    }
+}
+
